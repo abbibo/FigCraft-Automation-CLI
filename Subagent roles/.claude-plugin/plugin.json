@@ -1,0 +1,10 @@
+{
+  "name": "figcraft-orchestrator",
+  "description": "Unified Multi-Agent Design & Engineering Suite for FigCraft: 29 industrial skills and 12 coordinated subagents covering design references, auto-layout, design systems, optical polish, native mobile, code generation, and visual acceptance.",
+  "version": "1.0.0",
+  "author": { "name": "FigCraft Multi-Agent Engineering Systems" },
+  "homepage": "https://github.com/donihadimas/figcraft-studio",
+  "repository": "https://github.com/donihadimas/figcraft-studio",
+  "license": "MIT OR Apache-2.0",
+  "keywords": ["figcraft", "design", "mcp", "ui", "multi-agent", "subagents", "design-system", "code-connect", "figma"]
+}

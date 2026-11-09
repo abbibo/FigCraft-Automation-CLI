@@ -1,0 +1,23 @@
+# Node
+node_modules/
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Build artifacts
+*.wasm
+
+# IDE / editor
+.vscode/
+.idea/
+
+# Figma binary files (large)
+*.fig
+*.figcraft
+
+# Output directory (generated exports)
+FinalOut/
+
+# Nested .git repos
+Subagent roles/.git/

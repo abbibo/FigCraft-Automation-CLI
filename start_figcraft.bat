@@ -1,0 +1,3 @@
+@echo off
+echo Starting FigCraft with Agent Attached Mode on port 47800...
+cmd.exe /c ""C:\Program Files\ArtCraft\FigCraft\figcraft.exe" --control 47800 2>&1"

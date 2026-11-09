@@ -1,0 +1,51 @@
+{
+  "commands": [
+    {
+      "as": "heroFrame",
+      "command": "node.create",
+      "params": {
+        "type": "frame",
+        "name": "Hero Section",
+        "x": 0,
+        "y": 0,
+        "width": 800,
+        "height": 400,
+        "props": {
+          "layout": "vertical",
+          "gap": 16,
+          "padding": 40,
+          "cornerRadius": 20,
+          "fill": "#0F172A",
+          "sizingH": "fixed",
+          "sizingV": "hug"
+        }
+      }
+    },
+    {
+      "command": "node.create",
+      "params": {
+        "parent": { "$ref": "heroFrame" },
+        "type": "text",
+        "name": "Heading",
+        "text": "Automate Every Pixel",
+        "props": {
+          "fontSize": 32,
+          "fill": "#38BDF8"
+        }
+      }
+    },
+    {
+      "command": "node.create",
+      "params": {
+        "parent": { "$ref": "heroFrame" },
+        "type": "text",
+        "name": "Subheading",
+        "text": "FigCraft automation scripts execute complex layouts with native auto-layout rules in milliseconds.",
+        "props": {
+          "fontSize": 16,
+          "fill": "#94A3B8"
+        }
+      }
+    }
+  ]
+}

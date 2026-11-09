@@ -1,0 +1,16 @@
+{
+  "id": "org.antigravity.palette-swatch-grid",
+  "name": "Palette Swatch Grid",
+  "version": "1.0.0",
+  "description": "Generates a grid of color swatches and design tokens from a palette of hex colors.",
+  "main": "palette_swatch_grid.wasm",
+  "permissions": {
+    "access": "write",
+    "commands": [
+      "node.*",
+      "shape.*",
+      "text.*",
+      "layout.*"
+    ]
+  }
+}
