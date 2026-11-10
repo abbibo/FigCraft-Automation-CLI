@@ -188,6 +188,13 @@ Commands:
              --format <fmt>         png | svg | pdf | webp (default: png)
              --scale <n>            Scale multiplier (default: 2)
 
+  autolayout Convert or inspect design files for responsive Auto Layout
+             --out <file>           Output file (.figcraft or .json)
+             --confidence <n>       Confidence threshold (0-1, default: 0.60)
+             --tolerance <n>        Geometric variance tolerance (px, default: 2)
+             --force                Force re-conversion of existing auto-layout frames
+             --dryRun               Preview plan without modifying file
+
   run        Execute a batch workflow JSON file
              node automate.js run <path/to/workflow.json>
 `);
@@ -567,6 +574,51 @@ Commands:
           await session.exportNode(frame.id, filePath, format, scale);
         }
         console.log(`Export complete! All frames saved to: ${outDir}`);
+        break;
+      }
+
+      case 'autolayout': {
+        const inputFile = args._[1];
+        if (!inputFile) {
+          console.error('Error: Please specify an input design file (.figcraft, .json, .fig, .sketch)');
+          process.exit(1);
+        }
+        const { processFile } = require('./src/auto-layout');
+        const outPath = args.out || null;
+        const dryRun = Boolean(args.dryRun);
+        const force = Boolean(args.force);
+        const minConfidence = typeof args.confidence !== 'undefined' ? Number(args.confidence) : 0.60;
+        const tolerance = typeof args.tolerance !== 'undefined' ? Number(args.tolerance) : 2;
+
+        console.log(`Analyzing document for Auto Layout: ${inputFile}...`);
+        const result = processFile(inputFile, outPath, {
+          minConfidence,
+          tolerance,
+          dryRun,
+          force
+        });
+
+        console.log(`Document: "${result.documentName}" (Format: ${result.format})`);
+        console.log(`Candidates: ${result.conversionPlan.totalCandidates} | Converted: ${result.conversionPlan.convertedCount} | Skipped: ${result.conversionPlan.skippedCount}`);
+        
+        for (const step of result.conversionPlan.plan) {
+          console.log(`  ✓ Converted Frame "${step.containerName}" (ID ${step.containerId})`);
+          console.log(`    Mode: ${step.layout.mode} | Gap: ${step.layout.gap}px | Padding: [${step.layout.padding.join(', ')}] | Confidence: ${step.confidence}`);
+          console.log(`    Child elements: ${step.childUpdates.length} flow elements configured`);
+        }
+
+        if (result.conversionPlan.warnings.length > 0) {
+          console.log('\nWarnings / Preserved absolute elements:');
+          for (const w of result.conversionPlan.warnings) {
+            console.log(`  ! [${w.name}]: ${w.reason}`);
+          }
+        }
+
+        if (result.savedPath) {
+          console.log(`\nSuccess! Converted design saved to: ${result.savedPath}`);
+        } else if (dryRun) {
+          console.log('\nDry run complete. No files were written.');
+        }
         break;
       }
 

@@ -96,6 +96,44 @@ const EXTENDED_TOOLS = [
         outputDir: { type: "string", description: "Destination folder path (default: 'D:/Figma Agent/FinalOut')" }
       }
     }
+  },
+  {
+    name: "autolayout_convert_document",
+    title: "Auto Layout Convert Document",
+    description: "Inspects, detects, infers, and converts design containers into responsive Auto Layout in FigCraft (.figcraft, .json, .fig, .sketch).",
+    inputSchema: {
+      type: "object",
+      properties: {
+        inputPath: { type: "string", description: "Path to input design file" },
+        outputPath: { type: "string", description: "Optional output destination path" },
+        dryRun: { type: "boolean", description: "Preview conversion plan without writing" },
+        minConfidence: { type: "number", description: "Minimum confidence score 0.0-1.0 (default: 0.60)" },
+        force: { type: "boolean", description: "Force re-conversion of existing auto-layout frames" }
+      },
+      required: ["inputPath"]
+    }
+  },
+  {
+    name: "autolayout_manage_presets",
+    title: "Auto Layout Manage Presets",
+    description: "Manage reusable Auto Layout styles, lock configurations, and perform bulk updates across frames by #hook name.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        action: {
+          type: "string",
+          enum: ["list", "get", "set", "delete", "lock", "update_all_by_hooks"],
+          description: "Action to perform"
+        },
+        id: { type: "string", description: "Preset ID" },
+        hook: { type: "string", description: "Semantic hook name (e.g. '#card-standard', '#nav-header')" },
+        preset: { type: "object", description: "Preset configuration object (for 'set')" },
+        locked: { type: "boolean", description: "Lock state (for 'lock')" },
+        force: { type: "boolean", description: "Force update even if locked" },
+        dryRun: { type: "boolean", description: "Preview bulk hook update" }
+      },
+      required: ["action"]
+    }
   }
 ];
 
@@ -736,6 +774,102 @@ async function main() {
                     type: 'text',
                     text: `Exported ${exportedFiles.length} frame(s) to ${outputDir}:\n` +
                       exportedFiles.map(f => `- ${f.name} (id: ${f.id}) -> ${f.path}`).join('\n')
+                  }
+                ],
+                isError: false
+              }
+            }) + '\n');
+          } catch (err) {
+            process.stdout.write(JSON.stringify({
+              jsonrpc: '2.0',
+              id: msg.id,
+              error: { code: -32603, message: err.message }
+            }) + '\n');
+          }
+          return;
+        }
+
+        if (toolName === 'autolayout_convert_document') {
+          try {
+            const { processFile } = require('./src/auto-layout');
+            const res = processFile(args.inputPath, args.outputPath, {
+              minConfidence: args.minConfidence,
+              dryRun: args.dryRun,
+              force: args.force
+            });
+
+            process.stdout.write(JSON.stringify({
+              jsonrpc: '2.0',
+              id: msg.id,
+              result: {
+                content: [
+                  {
+                    type: 'text',
+                    text: `Auto Layout Conversion Completed:\n${JSON.stringify(res, null, 2)}`
+                  }
+                ],
+                isError: false
+              }
+            }) + '\n');
+          } catch (err) {
+            process.stdout.write(JSON.stringify({
+              jsonrpc: '2.0',
+              id: msg.id,
+              error: { code: -32603, message: err.message }
+            }) + '\n');
+          }
+          return;
+        }
+
+        if (toolName === 'autolayout_manage_presets') {
+          try {
+            const { PresetManager } = require('./src/auto-layout');
+            const manager = new PresetManager();
+            let actionResult = null;
+
+            switch (args.action) {
+              case 'list':
+                actionResult = manager.list();
+                break;
+              case 'get':
+                actionResult = manager.get(args.id || args.hook);
+                break;
+              case 'set':
+                actionResult = manager.set({ ...args.preset, force: args.force });
+                break;
+              case 'delete':
+                actionResult = manager.delete(args.id, args.force);
+                break;
+              case 'lock':
+                actionResult = manager.setLock(args.id, args.locked);
+                break;
+              case 'update_all_by_hooks': {
+                const inspectRes = await callChild('tools/call', {
+                  name: 'inspect_document',
+                  arguments: {}
+                });
+                let docData = {};
+                if (inspectRes.result?.content?.[0]?.text) {
+                  docData = JSON.parse(inspectRes.result.content[0].text);
+                }
+                actionResult = manager.updateAllByHooks(docData, args.hook, {
+                  dryRun: args.dryRun,
+                  force: args.force
+                });
+                break;
+              }
+              default:
+                throw new Error(`Unknown preset action: ${args.action}`);
+            }
+
+            process.stdout.write(JSON.stringify({
+              jsonrpc: '2.0',
+              id: msg.id,
+              result: {
+                content: [
+                  {
+                    type: 'text',
+                    text: `Preset Action '${args.action}' Result:\n${JSON.stringify(actionResult, null, 2)}`
                   }
                 ],
                 isError: false

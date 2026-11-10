@@ -15,8 +15,9 @@ Command-line toolkit for automating **FigCraft** design tasks in headless or liv
 | **Batch Export** | Export every top-level frame on the canvas as PNG, SVG, PDF, or WebP at any scale. |
 | **JSON Workflows** | Define multi-step automation pipelines in a JSON file and execute them with a single command. |
 | **MCP Proxy Server** | Extended MCP server proxy that adds high-level composite tools on top of native FigCraft commands. |
+| **Auto Layout Engine** | Parse, infer, convert, and validate Figma-like responsive Auto Layout on static designs (.figcraft, .json, .fig, .sketch) with reusable presets and #hook synchronization. |
 | **WASM Plugin** | Includes a sample Rust → WebAssembly plugin for generating palette swatch grids directly inside FigCraft. |
-| **Subagent System** | A full multi-agent orchestration framework with 12+ specialized roles for AI-driven design workflows. |
+| **Subagent System** | A full multi-agent orchestration framework with 13 specialized roles for AI-driven design workflows. |
 
 ---
 
@@ -135,6 +136,24 @@ node automate.js export --out "./exports" --format svg --scale 2
 | `--format` | `png` | `png`, `svg`, `pdf`, or `webp` |
 | `--scale` | `2` | Export scale multiplier |
 
+### `autolayout` — Parse, Infer & Convert to Auto Layout
+
+```bash
+# Preview conversion plan without modifying files (Dry Run)
+node automate.js autolayout "design.figcraft" --dryRun
+
+# Convert and save responsive .figcraft
+node automate.js autolayout "design.figcraft" --out "responsive.figcraft"
+```
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `--out` | *(none)* | Destination path (`.figcraft` or `.json`) |
+| `--confidence` | `0.60` | Minimum confidence score threshold (0.0 - 1.0) |
+| `--tolerance` | `2` | Geometric variance tolerance in px |
+| `--force` | `false` | Force re-conversion of existing auto-layout frames |
+| `--dryRun` | `false` | Preview conversion plan without writing |
+
 ### `run` — Execute a JSON Workflow
 
 ```bash
@@ -155,6 +174,8 @@ An extended MCP proxy that wraps the native FigCraft MCP interface and adds high
 | `generate_color_palette` | Build design-token swatch grids with hex labels |
 | `scaffold_navbar` | Build responsive navigation bars with brand and links |
 | `batch_export_all_frames` | Export all top-level canvas frames in one call |
+| `autolayout_convert_document` | Parse, infer, and convert design containers to Auto Layout |
+| `autolayout_manage_presets` | Manage reusable layout styles, locks, and bulk #hook updates |
 
 All standard FigCraft MCP tools are transparently proxied.
 
